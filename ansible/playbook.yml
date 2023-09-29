@@ -1,0 +1,102 @@
+---
+- name: Install Docker and Docker Compose to HR App and Monitoring servers if not already installed
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Check if Docker is installed
+      command: docker --version
+      ignore_errors: true
+      register: docker_installed
+
+    - name: Install Docker if not installed
+      yum:
+        name: docker
+        state: present
+      when: docker_installed.rc != 0
+
+    - name: Check if Docker Compose is installed
+      command: docker-compose --version
+      ignore_errors: true
+      register: compose_installed
+
+    - name: Install Docker Compose if not installed
+      pip:
+        name: docker-compose
+        executable: pip3
+        state: present
+      when: compose_installed.rc != 0
+
+    - name: Start and enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+
+
+- name: Install and Configure Node Exporter and cAdvisor using Docker
+  hosts: hrapp_ec2_instances
+  become: true
+
+  tasks:
+    - name: Pull Prometheus Node Exporter Docker image
+      docker_image:
+        name: prom/node-exporter:latest
+      become: true
+
+    - name: Run Prometheus Node Exporter container
+      docker_container:
+        name: node-exporter
+        image: prom/node-exporter:latest
+        ports:
+          - "9100:9100"
+      become: true
+
+    - name: Pull cAdvisor Docker image
+      docker_image:
+        name: google/cadvisor:latest
+      become: true
+
+    - name: Run cAdvisor container
+      docker_container:
+        name: cadvisor
+        image: google/cadvisor:latest
+        ports:
+          - "8080:8080"
+        volumes:
+          - /:/rootfs:ro
+          - /var/run:/var/run:rw
+          - /sys:/sys:ro
+          - /var/lib/docker/:/var/lib/docker:ro
+      become: true
+
+
+
+- name: Pull Prometheus Monitoring Repo into monitoring server and Run with Docker Compose
+  hosts: hrapp_monitoring_ec2_instance
+  become: true
+  # todo: move vars to a var file
+  vars:
+    workspace_dir: /workspace
+    git_repo_url: https://github.com/cobidennis/prometheus.git
+    git_repo_branch: master
+    docker_compose_file: /workspace/prometheus/docker-compose.yml
+
+  tasks:
+    - name: Create workspace directory if it doesn't exist
+      file:
+        path: "{{ workspace_dir }}"
+        state: directory
+      become: true
+
+    - name: Clone Git repository into workspace directory
+      git:
+        repo: "{{ git_repo_url }}"
+        dest: "{{ workspace_dir }}"
+        version: "{{ git_repo_branch }}"
+      become: true
+
+    - name: Run Docker Compose in the workspace directory
+      command: docker-compose -f "{{ workspace_dir }}/docker-compose.yml" up -d
+      become: true
