@@ -67,22 +67,12 @@
   become: true
 
   tasks:
-    - name: Pull Prometheus Node Exporter Docker image
-      docker_image:
-        name: prom/node-exporter:latest
-      become: true
-
-    - name: Run Prometheus Node Exporter container
+    - name: Run Prometheus Node Exporter container from image
       docker_container:
         name: node-exporter
         image: prom/node-exporter:latest
         ports:
           - "9100:9100"
-      become: true
-
-    - name: Pull cAdvisor Docker image
-      docker_image:
-        name: google/cadvisor:latest
       become: true
 
     - name: Run cAdvisor container
