@@ -44,17 +44,22 @@
         enabled: yes
 
     - name: Check if Docker Compose is installed
-      command: docker-compose --version
-      ignore_errors: true
-      register: compose_installed
+      stat:
+        path: /usr/local/bin/docker-compose
+      register: compose_file_status
 
     - name: Install Docker Compose if not installed
       command: >
-        curl -L "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose
-      vars:
-        docker_compose_version: 1.29.2  # Change this to the desired Docker Compose version
+        curl -L "https://github.com/docker/compose/releases/download/v2.22.0/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
       become: true
-      when: compose_installed.rc != 0
+      when: compose_file_status.stat.exists
+
+    - name: Make Docker Compose binary file executable
+      file:
+        path: /usr/local/bin/docker-compose
+        mode: '+x'
+      become: true
+      when: compose_file_status.stat.exists
 
 
 - name: Install and Configure Node Exporter and cAdvisor using Docker
