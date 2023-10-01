@@ -33,5 +33,6 @@ override.tf.json
 .terraformrc
 terraform.rc
 
-# Ignore ansible env_file
+# Ignore some ansible files
 ansible/env_files/hrapp.yml
+ansible/inventory.ini
