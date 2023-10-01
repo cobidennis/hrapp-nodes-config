@@ -68,6 +68,8 @@
       docker_container:
         name: hrapp
         image: cobidennis/hrapp:release
+        state: started
+        restart_policy: always
         ports:
           - "80:5000"
         env:
@@ -116,22 +118,22 @@
   tasks:
     - name: Check if /workspace directory exists
       stat:
-        path: ~/workspace
+        path: /home/ec2-user/workspace
       register: workspace_stat
 
     - name: Create workspace directory if it doesn't exist
       file:
-        path: ~/workspace
+        path: /home/ec2-user/workspace
         state: directory
       when: not workspace_stat.stat.exists
 
     - name: Clone prometheus repository into workspace directory
       git:
         repo: https://github.com/cobidennis/prometheus.git
-        dest: ~/workspace
+        dest: /home/ec2-user/workspace/prometheus
         version: dev
       become: true
 
-    - name: Run Docker Compose in the workspace directory
-      command: docker-compose -f ~/workspace/prometheus/docker-compose.yml up -d
+    - name: Run Prometheus and co with Docker Compose in the workspace directory as daemon
+      command: docker-compose -f /home/ec2-user/workspace/prometheus/docker-compose.yml up -d
       become: true
