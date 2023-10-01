@@ -49,7 +49,7 @@
       command: >
         curl -L "https://github.com/docker/compose/releases/download/v2.22.0/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
       become: true
-      when: compose_file_status.stat.exists
+      when: not compose_file_status.stat.exists
 
     - name: Make Docker Compose binary file executable
       file:
@@ -114,19 +114,24 @@
   become: true
 
   tasks:
+    - name: Check if /workspace directory exists
+      stat:
+        path: ~/workspace
+      register: workspace_stat
+
     - name: Create workspace directory if it doesn't exist
       file:
-        path: /workspace
+        path: ~/workspace
         state: directory
-      become: true
+      when: not workspace_stat.stat.exists
 
-    - name: Clone Git repository into workspace directory
+    - name: Clone prometheus repository into workspace directory
       git:
         repo: https://github.com/cobidennis/prometheus.git
-        dest: /workspace
+        dest: ~/workspace
         version: dev
       become: true
 
     - name: Run Docker Compose in the workspace directory
-      command: docker-compose -f /workspace/prometheus/docker-compose.yml up -d
+      command: docker-compose -f ~/workspace/prometheus/docker-compose.yml up -d
       become: true
