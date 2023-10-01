@@ -64,7 +64,7 @@
   become: true
 
   tasks:
-    - name: Run Docker Container
+    - name: Deploy HR App as a Docker Container
       docker_container:
         name: hrapp
         image: cobidennis/hrapp:release
@@ -73,7 +73,7 @@
         env:
           POSTGRES_HOST: "{{ postgres_host }}"
           POSTGRES_USER: "{{ postgres_user }}"
-          POSTGRES_DATABASE_NAME: "{{ postgres_db }}"
+          POSTGRES_DATABASE_NAME: "{{ postgres_database_name }}"
           POSTGRES_PASSWORD: "{{ postgres_password }}"
           TO_ADDRESS: "{{ to_address }}"
           SOURCE_ADDRESS: "{{ source_address }}"
