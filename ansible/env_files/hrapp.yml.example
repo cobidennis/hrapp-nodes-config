@@ -1,0 +1,11 @@
+# hrapp env
+
+postgres_host: project.xxxxxxxxx.amazonaws.com
+postgres_user: project
+postgres_database_name: postgres
+postgres_password: xxxxxxxx
+to_address: xxxxxxx@yahoo.com
+source_address: xxxxxx@gmail.com
+aws_region_name: eu-west-1
+aws_access_name: AKxxxxxxxxxxxxx
+aws_key_name: xxxx/xxxx/xxx+qlHbY7g

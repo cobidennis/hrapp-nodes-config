@@ -3,16 +3,13 @@
   hosts: all
   become: true
 
-  vars:
-    username_to_add: ec2-user
-
   tasks:
     - name: Install required packages
       yum:
         name: "{{ item }}"
         state: present
       loop:
-        - docker
+        - git
         - python3-pip
 
     - name: Check if Docker is installed
@@ -33,7 +30,7 @@
 
     - name: Add the user to the Docker group
       user:
-        name: "{{ username_to_add }}"
+        name: ec2-user
         groups: docker
         append: yes
 
@@ -62,11 +59,33 @@
       when: compose_file_status.stat.exists
 
 
-- name: Install and Configure Node Exporter and cAdvisor using Docker
+- name: Install and Configure App, Node Exporter and cAdvisor using Docker
   hosts: hrapp_ec2_instances
   become: true
 
   tasks:
+    - name: Run Docker Container
+      docker_container:
+        name: hrapp
+        image: cobidennis/hrapp:release
+        ports:
+          - "80:5000"
+        env:
+          POSTGRES_HOST: "{{ postgres_host }}"
+          POSTGRES_USER: "{{ postgres_user }}"
+          POSTGRES_DATABASE_NAME: "{{ postgres_db }}"
+          POSTGRES_PASSWORD: "{{ postgres_password }}"
+          TO_ADDRESS: "{{ to_address }}"
+          SOURCE_ADDRESS: "{{ source_address }}"
+          AWS_REGION_NAME: "{{ aws_region_name }}"
+          AWS_ACCESS_NAME: "{{ aws_access_name }}"
+          AWS_KEY_NAME: "{{ aws_key_name }}"
+      register: docker_run_hrapp_result
+
+    - name: Display hrapp Container Result
+      debug:
+        var: docker_run_hrapp_result
+
     - name: Run Prometheus Node Exporter container from image
       docker_container:
         name: node-exporter
@@ -93,27 +112,21 @@
 - name: Pull Prometheus Monitoring Repo into monitoring server and Run with Docker Compose
   hosts: hrapp_monitoring_ec2_instance
   become: true
-  # todo: move vars to a var file
-  vars:
-    workspace_dir: /workspace
-    git_repo_url: https://github.com/cobidennis/prometheus.git
-    git_repo_branch: master
-    docker_compose_file: /workspace/prometheus/docker-compose.yml
 
   tasks:
     - name: Create workspace directory if it doesn't exist
       file:
-        path: "{{ workspace_dir }}"
+        path: /workspace
         state: directory
       become: true
 
     - name: Clone Git repository into workspace directory
       git:
-        repo: "{{ git_repo_url }}"
-        dest: "{{ workspace_dir }}"
-        version: "{{ git_repo_branch }}"
+        repo: https://github.com/cobidennis/prometheus.git
+        dest: /workspace
+        version: dev
       become: true
 
     - name: Run Docker Compose in the workspace directory
-      command: docker-compose -f "{{ workspace_dir }}/docker-compose.yml" up -d
+      command: docker-compose -f /workspace/prometheus/docker-compose.yml up -d
       become: true
