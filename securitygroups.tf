@@ -69,7 +69,7 @@ resource "aws_security_group" "hrapp_monitoring_sg" {
   }
 
   ingress {
-    description = "Jenkins access"
+    description = "Prometheus access"
     from_port   = 9090
     to_port     = 9090
     protocol    = "tcp"
@@ -77,7 +77,7 @@ resource "aws_security_group" "hrapp_monitoring_sg" {
   }
 
   ingress {
-    description = "Jenkins access"
+    description = "Alert Manager access"
     from_port   = 9093
     to_port     = 9093
     protocol    = "tcp"
@@ -85,7 +85,7 @@ resource "aws_security_group" "hrapp_monitoring_sg" {
   }
 
   ingress {
-    description = "Jenkins access"
+    description = "Grafana access"
     from_port   = 3000
     to_port     = 3000
     protocol    = "tcp"
