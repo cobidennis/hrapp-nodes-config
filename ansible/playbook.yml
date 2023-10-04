@@ -86,7 +86,7 @@
 
     - name: Display hrapp Container Result
       debug:
-        var: docker_run_hrapp_result
+        var: docker_run_hrapp_result.container.State
 
     - name: Run Prometheus Node Exporter container from image
       docker_container:

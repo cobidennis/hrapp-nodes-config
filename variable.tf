@@ -34,11 +34,11 @@ variable "availability_zone_c" {
 }
 
 # variable "bucket" {
-  
+
 # }
 
 # variable "key" {
-  
+
 # }
 
 variable "db_username" {

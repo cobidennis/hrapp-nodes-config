@@ -1,7 +1,7 @@
-resource "aws_db_instance" "hrapp" {              
+resource "aws_db_instance" "hrapp" {
   allocated_storage        = 10
-  identifier = "hrapp-main"
-  db_subnet_group_name = aws_db_subnet_group.hrapp_db_subnet_group.name
+  identifier               = "hrapp-main"
+  db_subnet_group_name     = aws_db_subnet_group.hrapp_db_subnet_group.name
   db_name                  = "hrapp"
   engine                   = "postgres"
   instance_class           = "db.t3.micro"
@@ -11,5 +11,5 @@ resource "aws_db_instance" "hrapp" {
   publicly_accessible      = true
   delete_automated_backups = true
   availability_zone        = var.availability_zone_c
-  apply_immediately = true
+  apply_immediately        = true
 }

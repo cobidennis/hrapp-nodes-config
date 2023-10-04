@@ -11,13 +11,13 @@ resource "aws_instance" "hrapp_node" {
 }
 
 resource "aws_instance" "monitoring_node" {
-  ami           = var.ec2_ami
-  instance_type = var.ec2_instance_type
-  key_name      = var.ec2_key_name
+  ami                         = var.ec2_ami
+  instance_type               = var.ec2_instance_type
+  key_name                    = var.ec2_key_name
   subnet_id                   = aws_subnet.pub_eu_west_1_c.id
   vpc_security_group_ids      = [aws_security_group.hrapp_monitoring_sg.id]
   associate_public_ip_address = true
-  tags                        = {
+  tags = {
     Name = "Monitoring Node"
   }
 }
