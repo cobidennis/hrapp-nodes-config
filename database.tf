@@ -2,6 +2,7 @@ resource "aws_db_instance" "hrapp" {
   allocated_storage        = 10
   identifier               = "hrapp-main"
   db_subnet_group_name     = aws_db_subnet_group.hrapp_db_subnet_group.name
+  vpc_security_group_ids = [aws_security_group.hrapp_db_sg.id]
   db_name                  = "hrapp"
   engine                   = "postgres"
   instance_class           = "db.t3.micro"

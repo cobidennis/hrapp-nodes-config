@@ -95,6 +95,11 @@
         ports:
           - "9100:9100"
       become: true
+      register: docker_run_hrapp_node_exporter_result
+
+    - name: Display hrapp-node-exporter Container Result
+      debug:
+        var: docker_run_hrapp_node_exporter_result.container.State
 
     - name: Run cAdvisor container
       docker_container:
@@ -108,6 +113,11 @@
           - /sys:/sys:ro
           - /var/lib/docker/:/var/lib/docker:ro
       become: true
+      register: docker_run_cAdvisor_result
+
+    - name: Display cAdvisor Container Result
+      debug:
+        var: docker_run_cAdvisor_result.container.State
 
 
 

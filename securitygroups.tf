@@ -103,3 +103,36 @@ resource "aws_security_group" "hrapp_monitoring_sg" {
     Name = "Allowing Prometheus and Co"
   }
 }
+
+resource "aws_security_group" "hrapp_db_sg" {
+  name        = "hrapp_db_sg"
+  description = "Allow Postgres RDS Traffic"
+  vpc_id      = aws_vpc.hrapp_vpc.id
+
+  ingress {
+    description = "SSH to RDS"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "HTTP from VPC"
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "allow_Postgres"
+  }
+}
