@@ -104,14 +104,15 @@
     - name: Run cAdvisor container
       docker_container:
         name: cadvisor
-        image: google/cadvisor:latest
+        image: gcr.io/cadvisor/cadvisor:latest
         ports:
           - "8080:8080"
+        privileged: yes
         volumes:
-          - /:/rootfs:ro
           - /var/run:/var/run:rw
           - /sys:/sys:ro
           - /var/lib/docker/:/var/lib/docker:ro
+        state: started
       become: true
       register: docker_run_cAdvisor_result
 
