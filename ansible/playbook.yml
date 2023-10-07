@@ -64,6 +64,13 @@
   become: true
 
   tasks:
+    - name: Remove HR App container if it exists
+      docker_container:
+        name: hrapp
+        state: absent
+      become: true
+      ignore_errors: true
+
     - name: Deploy HR App as a Docker Container
       docker_container:
         name: hrapp
