@@ -75,24 +75,3 @@ resource "aws_route_table_association" "sub_route3" {
   subnet_id      = aws_subnet.pub_eu_west_1_c.id
   route_table_id = aws_route_table.route1.id
 }
-
-# ## Load Balancing
-# resource "aws_lb" "hrapp_lb" {
-#   name               = "hrapp-lb"
-#   internal           = false
-#   load_balancer_type = "application"
-#   subnets            = [aws_subnet.pub_eu_west_1_a.id, aws_subnet.pub_eu_west_1_b.id]
-# }
-
-# resource "aws_lb_target_group" "hrapp_tg" {
-#   name     = "hrapp-tg"
-#   port     = 80
-#   protocol = "HTTP"
-#   vpc_id   = aws_vpc.hrapp_vpc.id
-# }
-
-# resource "aws_lb_target_group_attachment" "hrapp_tg_attachment" {
-#   count            = 2
-#   target_group_arn = aws_lb_target_group.hrapp_tg.arn
-#   target_id        = aws_instance.hrapp_node[count.index].id
-# }

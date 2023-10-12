@@ -1,0 +1,77 @@
+---
+- name: Install Docker and Docker Compose to HR App and Monitoring servers if not already installed
+  hosts: monitoring
+  become: true
+
+  tasks:
+    - name: Install Git
+      yum:
+        name: git
+
+    - name: Check if Docker is installed
+      command: docker --version
+      ignore_errors: true
+      register: docker_installed
+
+    - name: Install Docker if not installed
+      yum:
+        name: docker
+        state: present
+      when: docker_installed.rc != 0
+
+    - name: Ensure the Docker group exists
+      group:
+        name: docker
+        state: present
+
+    - name: Add the user to the Docker group
+      user:
+        name: ec2-user
+        groups: docker
+        append: yes
+
+    - name: Start and enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Check if Docker Compose is installed
+      stat:
+        path: /usr/local/bin/docker-compose
+      register: compose_file_status
+
+    - name: Install Docker Compose if not installed
+      command: >
+        curl -L "https://github.com/docker/compose/releases/download/v2.22.0/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
+      become: true
+      when: not compose_file_status.stat.exists
+
+    - name: Make Docker Compose binary file executable
+      file:
+        path: /usr/local/bin/docker-compose
+        mode: '+x'
+      become: true
+      when: compose_file_status.stat.exists
+
+    - name: Check if /workspace directory exists
+      stat:
+        path: /home/ec2-user/workspace
+      register: workspace_stat
+
+    - name: Create workspace directory if it doesn't exist
+      file:
+        path: /home/ec2-user/workspace
+        state: directory
+      when: not workspace_stat.stat.exists
+
+    - name: Clone prometheus repository into workspace directory
+      git:
+        repo: https://github.com/cobidennis/prometheus.git
+        dest: /home/ec2-user/workspace/prometheus
+        version: dev
+      become: true
+
+    - name: Run Prometheus and co with Docker Compose in the workspace directory as daemon
+      command: docker-compose -f /home/ec2-user/workspace/prometheus/docker-compose.yml up -d
+      become: true
