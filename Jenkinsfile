@@ -1,47 +1,50 @@
 pipeline {
     agent any
     environment {
-        version = 'V1'
+        AWS_ACCESS_KEY_ID = credentials ('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials ('AWS_SECRET_ACCESS_KEY')
     }
     stages {
-        stage('Download Code from GHub') {
+        stage('Download config from github') {
             steps {
-                sh 'git clone https://github.com/cobidennis/hrapp.git'
+                sh 'git clone https://github.com/cobidennis/hrapp-nodes-config.git'
             }
         }
-        stage ('Build Image') {
+        stage('Download Terraform Var Files from S3') {
+            steps {
+                script {
+                    def s3Bucket = 'dobee-buckets'
+                    def terraformBackend = 'devops-training/terraform/hr-app/backend.tfvars'
+                    def terraformVars = 'devops-training/terraform/hr-app/terraform.tfvars'
+                    def localFilePath = 'hrapp-nodes-config'
+
+                    sh "aws s3 cp s3://${s3Bucket}/${terraformBackend} ${localFilePath}"
+                    sh "aws s3 cp s3://${s3Bucket}/${terraformVars} ${localFilePath}"
+
+                    def backendVarsExists = fileExists("${localFilePath}/backend.tfvars")
+                    def terraformVarsExists = fileExists("${localFilePath}/terraform.tfvars")
+
+                    if (backendVarsExists && terraformVarsExists) {
+                        echo "All tvars are available. Proceeding to the next stage."
+                    } else {
+                        error "Not all tvars files exist. Aborting the pipeline."
+                    }
+                }
+            }
+        }
+        stage ('Terraform: Build and manage Infrastructure') {
+            when {
+                expression {
+                    // This stage will execute only if all tvars file are availabe
+                    return backendVarsExists && terraformVarsExists
+                }
+            }
             steps {
                 sh '''
-                    cd hrapp
-                    docker build -t cobidennis/hrapp:$version .
-                    docker tag cobidennis/hrapp:$version cobidennis/hrapp:release
-                '''
-            }
-        }
-        stage ('Push Image to DHub') {
-            steps {
-                withCredentials([
-                    [
-                        $class: 'UsernamePasswordMultiBinding',
-                        credentialsId:'docker',
-                        usernameVariable: 'USERNAME',
-                        passwordVariable: 'PASSWORD'
-                    ]
-                ]) {
-                    sh '''
-                        docker login -u $USERNAME -p $PASSWORD
-                        docker push cobidennis/hrapp:$version
-                        docker push cobidennis/hrapp:release
-                    '''
-                } 
-            }
-        }
-        stage ('Ansible: Deploy Apps and Monitoring System') {
-            steps {
-                sh '''
-                    git clone https://github.com/cobidennis/hrapp-nodes-config.git
-                    cd hrapp-nodes-config/ansible
-                    ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -e @/tmp/hrapp.yml -i /tmp/inventory.ini  playbook.yml --key-file /tmp/DobeeP53.pem -u ec2-user
+                    cd hrapp-nodes-config
+                    terraform init -backend-config=backend.tfvars
+                    terraform apply -auto-approve
+                    
                 '''
             }
         }
