@@ -9,7 +9,7 @@
         name: git
 
     - name: Check if Docker is installed
-      command: docker --version
+      ansible.builtin.command: docker --version
       ignore_errors: true
       register: docker_installed
 
@@ -73,5 +73,5 @@
       become: true
 
     - name: Run Prometheus and co with Docker Compose in the workspace directory as daemon
-      command: docker-compose -f /home/ec2-user/workspace/prometheus/docker-compose.yml up -d
-      become: true
+      ansible.builtin.command: docker-compose -f /home/ec2-user/workspace/prometheus/docker-compose.yml up -d
+      # become: true

@@ -1,4 +1,3 @@
-## Load Balancing
 resource "aws_lb" "hrapp_lb" {
   name               = "hrapp-lb"
   internal           = false
