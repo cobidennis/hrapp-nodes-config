@@ -21,8 +21,8 @@ pipeline {
                     sh "aws s3 cp s3://${s3Bucket}/${terraformBackend} ${localFilePath}"
                     sh "aws s3 cp s3://${s3Bucket}/${terraformVars} ${localFilePath}"
 
-                    def backendVarsExists = fileExists("${localFilePath}/backend.tfvars")
-                    def terraformVarsExists = fileExists("${localFilePath}/terraform.tfvars")
+                    backendVarsExists = fileExists("${localFilePath}/backend.tfvars")
+                    terraformVarsExists = fileExists("${localFilePath}/terraform.tfvars")
 
                     if (backendVarsExists && terraformVarsExists) {
                         echo "All tvars are available. Proceeding to the next stage."
