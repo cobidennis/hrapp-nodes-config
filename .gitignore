@@ -35,4 +35,4 @@ terraform.rc
 
 # Ignore some ansible files
 ansible/env_files/hrapp.yml
-ansible/inventory.ini
+#ansible/inventory.ini
